@@ -7,7 +7,7 @@ public class Category
     public int Id { get; set; }
 
     [Required]
-    [StringLength(100)]
+    [StringLength(50, ErrorMessage = "Name cannot be longer than 50 characters.")]
     public string Name { get; set; }
 
     // Navigation property for related transactions
