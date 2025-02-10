@@ -11,6 +11,6 @@ public class Category
     public string Name { get; set; }
 
     // Navigation property for related transactions
-    public ICollection<Transaction> Transactions { get; set; }
+    public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 
 }
