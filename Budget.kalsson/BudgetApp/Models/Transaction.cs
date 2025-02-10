@@ -17,6 +17,7 @@ public class Transaction
     public decimal Amount { get; set; }
 
     [Required]
+    [DataType(DataType.Date)]
     public DateTime Date { get; set; }
 
     // Foreign key for Category
