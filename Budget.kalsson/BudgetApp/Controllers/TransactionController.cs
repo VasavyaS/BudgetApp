@@ -48,7 +48,7 @@ namespace BudgetApp.Controllers
         // GET: Transaction/Create
         public IActionResult Create()
         {
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
+            ViewBag.CategoryId = new SelectList(_context.Categories, "Id", "Name");
             return View();
         }
 
@@ -57,7 +57,7 @@ namespace BudgetApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Amount,Date,CategoryId")] Transaction transaction)
+        public async Task<IActionResult> Create(Transaction transaction)
         {
             if (ModelState.IsValid)
             {
@@ -65,7 +65,18 @@ namespace BudgetApp.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
+
+            // Log all ModelState errors for debugging
+            foreach (var state in ModelState)
+            {
+                foreach (var error in state.Value.Errors)
+                {
+                    Console.WriteLine($"Field: {state.Key}, Error: {error.ErrorMessage}");
+                }
+            }
+
+            // Repopulate the dropdown list in case of invalid ModelState
+            ViewBag.CategoryId = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
             return View(transaction);
         }
 

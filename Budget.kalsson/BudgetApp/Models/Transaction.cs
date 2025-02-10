@@ -21,9 +21,10 @@ public class Transaction
 
     // Foreign key for Category
     [Display(Name = "Category")]
+    [Required(ErrorMessage = "The Category field is required.")]
     public int CategoryId { get; set; }
 
     // Navigation property
-    public Category Category { get; set; }
+    public Category? Category { get; set; }
 
 }
