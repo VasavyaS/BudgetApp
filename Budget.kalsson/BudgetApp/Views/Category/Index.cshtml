@@ -1,35 +1,38 @@
 @model IEnumerable<BudgetApp.Models.Category>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Categories";
 }
 
-<h1>Index</h1>
-
+<h1>Categories</h1>
 <p>
-    <a asp-action="Create">Create New</a>
+    <button class="btn btn-primary open-modal" data-url="@Url.Action("Create", "Category")">Create New</button>
 </p>
 <table class="table">
     <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th></th>
-        </tr>
+    <tr>
+        <th>Name</th>
+        <th>Actions</th>
+    </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+    @foreach (var item in Model) {
         <tr>
+            <td>@item.Name</td>
             <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <button class="btn btn-warning open-modal" data-url="@Url.Action("Edit", "Category", new { id = item.Id })">Edit</button>
+                <button class="btn btn-danger open-modal" data-url="@Url.Action("Delete", "Category", new { id = item.Id })">Delete</button>
             </td>
         </tr>
-}
+    }
     </tbody>
 </table>
+
+<!-- Modal placeholder -->
+<div class="modal fade" id="modalContainer" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" id="modalContent">
+            <!-- Dynamic modal content -->
+        </div>
+    </div>
+</div>
