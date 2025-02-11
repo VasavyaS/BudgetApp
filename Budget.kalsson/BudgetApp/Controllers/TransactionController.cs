@@ -15,18 +15,27 @@ public class TransactionController : Controller
         _context = context;
     }
 
+    /// Retrieves and displays a list of all transactions.
+    /// The transactions are displayed along with their associated categories.
+    /// <returns>A task that represents the asynchronous operation. The task result contains an IActionResult that renders the transactions view.</returns>
     public async Task<IActionResult> Index()
     {
         var transactions = _context.Transactions.Include(t => t.Category);
         return View(await transactions.ToListAsync());
     }
 
+    /// Displays a view for creating a new transaction.
+    /// The view includes a dropdown list of available categories for selection.
+    /// <returns>An IActionResult that renders the partial view for creating a transaction.</returns>
     public IActionResult Create()
     {
         ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
         return PartialView("_CreatePartial");
     }
 
+    /// Displays a view for creating a new transaction.
+    /// The view includes a dropdown list of available categories for selection.
+    /// <returns>An IActionResult that renders the partial view for creating a transaction.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Name,Amount,Date,CategoryId")] Transaction transaction)
@@ -42,6 +51,11 @@ public class TransactionController : Controller
         return PartialView("_CreatePartial", transaction);
     }
 
+    /// Displays a view for editing an existing transaction.
+    /// Retrieves the transaction details based on the provided ID.
+    /// The view includes a dropdown list of available categories for selection.
+    /// <param name="id">The ID of the transaction to be edited. If null, a NotFound result is returned.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains an IActionResult that renders the partial view for editing the transaction, or a NotFound result if the transaction is not found.</returns>
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null)
