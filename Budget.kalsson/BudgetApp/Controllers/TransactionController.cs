@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using BudgetApp.Models;
 using Microsoft.EntityFrameworkCore;
+using BudgetApp.Data;
+using BudgetApp.Models;
 using System.Linq;
 using System.Threading.Tasks;
-using BudgetApp.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 public class TransactionController : Controller
@@ -15,27 +15,32 @@ public class TransactionController : Controller
         _context = context;
     }
 
-    /// Retrieves and displays a list of all transactions.
-    /// The transactions are displayed along with their associated categories.
-    /// <returns>A task that represents the asynchronous operation. The task result contains an IActionResult that renders the transactions view.</returns>
-    public async Task<IActionResult> Index()
+    // Index - Displays all transactions with optional search functionality
+    public async Task<IActionResult> Index(string searchQuery)
     {
-        var transactions = _context.Transactions.Include(t => t.Category);
-        return View(await transactions.ToListAsync());
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            // Filter transactions based on the search query
+            var filteredTransactions = await _context.Transactions
+                .Include(t => t.Category)
+                .Where(t => t.Name.Contains(searchQuery) || t.Category.Name.Contains(searchQuery))
+                .ToListAsync();
+            return View(filteredTransactions);
+        }
+
+        // Load and display all transactions with their categories
+        var allTransactions = await _context.Transactions.Include(t => t.Category).ToListAsync();
+        return View(allTransactions);
     }
 
-    /// Displays a view for creating a new transaction.
-    /// The view includes a dropdown list of available categories for selection.
-    /// <returns>An IActionResult that renders the partial view for creating a transaction.</returns>
+    // GET: Display the Create modal (Partial View)
     public IActionResult Create()
     {
-        ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
+        ViewBag.CategoryId = new SelectList(_context.Categories, "Id", "Name");
         return PartialView("_CreatePartial");
     }
 
-    /// Displays a view for creating a new transaction.
-    /// The view includes a dropdown list of available categories for selection.
-    /// <returns>An IActionResult that renders the partial view for creating a transaction.</returns>
+    // POST: Create a new transaction
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Name,Amount,Date,CategoryId")] Transaction transaction)
@@ -47,28 +52,27 @@ public class TransactionController : Controller
             return Json(new { success = true });
         }
 
-        ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
+        // Reload the modal with validation errors
+        ViewBag.CategoryId = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
         return PartialView("_CreatePartial", transaction);
     }
 
-    /// Displays a view for editing an existing transaction.
-    /// Retrieves the transaction details based on the provided ID.
-    /// The view includes a dropdown list of available categories for selection.
-    /// <param name="id">The ID of the transaction to be edited. If null, a NotFound result is returned.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains an IActionResult that renders the partial view for editing the transaction, or a NotFound result if the transaction is not found.</returns>
+    // GET: Display the Edit modal (Partial View)
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null)
             return NotFound();
 
+        // Retrieve the transaction by its ID
         var transaction = await _context.Transactions.FindAsync(id);
         if (transaction == null)
             return NotFound();
 
-        ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
+        ViewBag.CategoryId = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
         return PartialView("_EditPartial", transaction);
     }
 
+    // POST: Update an existing transaction
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Amount,Date,CategoryId")] Transaction transaction)
@@ -78,29 +82,43 @@ public class TransactionController : Controller
 
         if (ModelState.IsValid)
         {
-            _context.Update(transaction);
-            await _context.SaveChangesAsync();
-            return Json(new { success = true });
+            try
+            {
+                _context.Update(transaction);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Transactions.Any(t => t.Id == id))
+                    return NotFound();
+                else
+                    throw;
+            }
         }
 
-        ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
+        ViewBag.CategoryId = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
         return PartialView("_EditPartial", transaction);
     }
 
+    // GET: Display the Delete modal (Partial View)
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
             return NotFound();
 
+        // Retrieve the transaction with its category for display
         var transaction = await _context.Transactions
-                            .Include(t => t.Category)
-                            .FirstOrDefaultAsync(m => m.Id == id);
+            .Include(t => t.Category)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
         if (transaction == null)
             return NotFound();
 
         return PartialView("_DeletePartial", transaction);
     }
 
+    // POST: Confirm deletion of a transaction
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
@@ -111,7 +129,6 @@ public class TransactionController : Controller
             _context.Transactions.Remove(transaction);
             await _context.SaveChangesAsync();
         }
-
         return Json(new { success = true });
     }
 }

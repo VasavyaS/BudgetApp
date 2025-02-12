@@ -5,7 +5,7 @@
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
 <div class="modal-body">
-    <form asp-action="Create" method="post">
+    <form asp-action="Create" method="post" data-ajax="true">
         <div class="form-group">
             <label asp-for="Name"></label>
             <input asp-for="Name" class="form-control" />

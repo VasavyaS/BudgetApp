@@ -1,9 +1,21 @@
 @model IEnumerable<BudgetApp.Models.Transaction>
 
 <h1>Transactions</h1>
+
+<!-- Search Form -->
+<form method="get" asp-action="Index" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="searchQuery" class="form-control" placeholder="Search by name or category..." value="@Context.Request.Query["searchQuery"]" />
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+</form>
+
+<!-- Create Button -->
 <p>
     <button class="btn btn-primary open-modal" data-url="@Url.Action("Create", "Transaction")">Create New</button>
 </p>
+
+<!-- Transaction Table -->
 <table class="table">
     <thead>
     <tr>
@@ -15,7 +27,8 @@
     </tr>
     </thead>
     <tbody>
-    @foreach (var item in Model) {
+    @foreach (var item in Model)
+    {
         <tr>
             <td>@item.Name</td>
             <td>@item.Amount</td>
@@ -29,6 +42,8 @@
     }
     </tbody>
 </table>
+
+<!-- Modal Container -->
 <div class="modal fade" id="modalContainer" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content" id="modalContent"></div>
