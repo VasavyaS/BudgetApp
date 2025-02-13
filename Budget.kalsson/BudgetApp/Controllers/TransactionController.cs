@@ -16,22 +16,35 @@ public class TransactionController : Controller
     }
 
     // Index - Displays all transactions with optional search functionality
-    public async Task<IActionResult> Index(string searchQuery)
+    public async Task<IActionResult> Index(int? categoryId, DateTime? startDate, string searchQuery)
     {
-        if (!string.IsNullOrWhiteSpace(searchQuery))
+        // Fetch all transactions
+        var transactions = _context.Transactions.Include(t => t.Category).AsQueryable();
+
+        // Filter by category if selected
+        if (categoryId.HasValue)
         {
-            // Filter transactions based on the search query
-            var filteredTransactions = await _context.Transactions
-                .Include(t => t.Category)
-                .Where(t => t.Name.Contains(searchQuery) || t.Category.Name.Contains(searchQuery))
-                .ToListAsync();
-            return View(filteredTransactions);
+            transactions = transactions.Where(t => t.CategoryId == categoryId.Value);
         }
 
-        // Load and display all transactions with their categories
-        var allTransactions = await _context.Transactions.Include(t => t.Category).ToListAsync();
-        return View(allTransactions);
+        // Filter by start date if provided
+        if (startDate.HasValue)
+        {
+            transactions = transactions.Where(t => t.Date >= startDate.Value);
+        }
+
+        // Filter by search query (search by name)
+        if (!string.IsNullOrEmpty(searchQuery))
+        {
+            transactions = transactions.Where(t => t.Name.Contains(searchQuery));
+        }
+
+        // Fetch categories for the dropdown
+        ViewData["Categories"] = new SelectList(await _context.Categories.OrderBy(c => c.Name).ToListAsync(), "Id", "Name");
+
+        return View(await transactions.ToListAsync());
     }
+
 
     // GET: Display the Create modal (Partial View)
     public IActionResult Create()

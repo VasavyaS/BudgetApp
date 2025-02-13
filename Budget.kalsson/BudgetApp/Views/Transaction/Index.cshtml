@@ -2,18 +2,45 @@
 
 <h1>Transactions</h1>
 
-<!-- Search Form -->
+<!-- Filter and Search Form -->
 <form method="get" asp-action="Index" class="mb-3">
-    <div class="input-group">
-        <input type="text" name="searchQuery" class="form-control" placeholder="Search by name or category..." value="@Context.Request.Query["searchQuery"]" />
-        <button type="submit" class="btn btn-primary">Search</button>
+    <div class="row">
+        <!-- Category Dropdown -->
+        <div class="col-md-3">
+            <label for="categoryId" class="form-label">Filter by Category</label>
+            <select id="categoryId" name="categoryId" class="form-select" onchange="this.form.submit();">
+                <option value="">All Categories</option>
+                @foreach (var category in (SelectList)ViewData["Categories"])
+                {
+                    var isSelected = Context.Request.Query["categoryId"] == category.Value ? "selected" : ""; // Logic handled outside
+                    <option value="@category.Value" selected="@(Context.Request.Query["categoryId"] == category.Value ? "selected" : null)">
+                        @category.Text
+                    </option>
+                }
+            </select>
+        </div>
+
+        <!-- Start Date -->
+        <div class="col-md-3">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" id="startDate" name="startDate" class="form-control"
+                   value="@(Context.Request.Query["startDate"])" onchange="this.form.submit();" />
+        </div>
+
+        <!-- Search Input -->
+        <div class="col-md-3">
+            <label for="searchQuery" class="form-label">Search by Name</label>
+            <input type="text" id="searchQuery" name="searchQuery" class="form-control"
+                   value="@(Context.Request.Query["searchQuery"])" placeholder="Search by name..." />
+        </div>
+
+        <!-- Submit Button -->
+        <div class="col-md-3">
+            <label class="form-label">&nbsp;</label>
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
     </div>
 </form>
-
-<!-- Create Button -->
-<p>
-    <button class="btn btn-primary open-modal" data-url="@Url.Action("Create", "Transaction")">Create New</button>
-</p>
 
 <!-- Transaction Table -->
 <table class="table">
@@ -33,7 +60,7 @@
             <td>@item.Name</td>
             <td>@item.Amount</td>
             <td>@item.Date.ToShortDateString()</td>
-            <td>@item.Category.Name</td>
+            <td>@item.Category?.Name</td>
             <td>
                 <button class="btn btn-warning open-modal" data-url="@Url.Action("Edit", "Transaction", new { id = item.Id })">Edit</button>
                 <button class="btn btn-danger open-modal" data-url="@Url.Action("Delete", "Transaction", new { id = item.Id })">Delete</button>
